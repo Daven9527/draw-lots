@@ -1,111 +1,409 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>3D 硬幣抽籤</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #111;
-      overflow: hidden;
-      touch-action: manipulation;
-      font-family: system-ui, -apple-system;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>拉霸機</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    #ui {
-      position: fixed;
-      bottom: 32px;
-      width: 100%;
-      text-align: center;
-      z-index: 10;
-    }
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
 
-    button {
-      font-size: 20px;
-      padding: 16px 40px;
-      border-radius: 999px;
-      border: none;
-      background: #ffcc00;
-      color: #000;
-      font-weight: 600;
-    }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
 
-    button:disabled {
-      background: #666;
-      color: #333;
-    }
-  </style>
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .slot-machine {
+            background: linear-gradient(145deg, #ff6b6b, #ee5a6f);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2),
+                        0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .slot-window {
+            background: #fff;
+            border: 8px solid #333;
+            border-radius: 10px;
+            height: 200px;
+            margin: 20px auto;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .slot-content {
+            position: absolute;
+            width: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .slot-content.rolling {
+            opacity: 1;
+            animation: roll 0.15s infinite linear;
+        }
+
+        @keyframes roll {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(-200px);
+            }
+        }
+
+        /* 移動端動畫調整 */
+        @media screen and (max-width: 768px) {
+            @keyframes roll {
+                0% {
+                    transform: translateY(0);
+                }
+                100% {
+                    transform: translateY(-180px);
+                }
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            @keyframes roll {
+                0% {
+                    transform: translateY(0);
+                }
+                100% {
+                    transform: translateY(-160px);
+                }
+            }
+        }
+
+        .result {
+            position: absolute;
+            width: 100%;
+            height: 200px;
+            font-size: 4em;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            transition: opacity 0.3s;
+        }
+
+        .result.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .btn-spin {
+            background: linear-gradient(145deg, #4ecdc4, #44a08d);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .btn-spin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-spin:active {
+            transform: scale(0.95) translateY(0);
+        }
+
+        .btn-spin:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .decorative-line {
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #333, transparent);
+            margin: 15px 0;
+        }
+
+        .options {
+            position: absolute;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .option-item {
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            font-weight: bold;
+        }
+
+        /* 移動設備優化 */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 20px;
+            }
+
+            .slot-machine {
+                padding: 20px;
+                margin: 20px 0;
+            }
+
+            .slot-window {
+                height: 180px;
+                border-width: 6px;
+                margin: 15px auto;
+            }
+
+            .result {
+                height: 180px;
+                font-size: 3em;
+            }
+
+            .option-item {
+                height: 180px;
+                font-size: 3em;
+            }
+
+            .btn-spin {
+                padding: 18px 35px;
+                font-size: 1.3em;
+                width: 100%;
+                max-width: 300px;
+                margin-top: 20px;
+            }
+
+            .decorative-line {
+                margin: 12px 0;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+                margin-bottom: 15px;
+            }
+
+            .slot-machine {
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            .slot-window {
+                height: 160px;
+                border-width: 5px;
+            }
+
+            .result {
+                height: 160px;
+                font-size: 2.5em;
+            }
+
+            .option-item {
+                height: 160px;
+                font-size: 2.5em;
+            }
+
+            .btn-spin {
+                padding: 16px 30px;
+                font-size: 1.2em;
+                max-width: 100%;
+            }
+        }
+
+        /* 觸摸優化 */
+        .btn-spin {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* 防止移動端雙擊縮放 */
+        * {
+            touch-action: pan-y;
+        }
+
+        /* 優化動畫性能 */
+        .slot-content,
+        .result,
+        .option-item {
+            will-change: transform;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>🎰 拉霸機 🎰</h1>
+        
+        <div class="slot-machine">
+            <div class="slot-window" id="slotWindow">
+                <div class="result" id="result">?</div>
+                <div class="slot-content" id="slotContent">
+                    <div class="options" id="options">
+                        <div class="option-item" style="color: #ff6b6b;">威威</div>
+                        <div class="option-item" style="color: #4ecdc4;">茜茜</div>
+                        <div class="option-item" style="color: #ff6b6b;">威威</div>
+                        <div class="option-item" style="color: #4ecdc4;">茜茜</div>
+                        <div class="option-item" style="color: #ff6b6b;">威威</div>
+                        <div class="option-item" style="color: #4ecdc4;">茜茜</div>
+                        <div class="option-item" style="color: #ff6b6b;">威威</div>
+                        <div class="option-item" style="color: #4ecdc4;">茜茜</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<div id="ui">
-  <button id="flipBtn">擲硬幣</button>
-</div>
+        <div class="decorative-line"></div>
 
-<script type="module">
-  import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js';
+        <button class="btn-spin" id="spinBtn" onclick="spin()">
+            開始抽獎
+        </button>
+    </div>
 
-  let scene, camera, renderer, coin;
-  let isFlipping = false;
-  let startTime = 0;
-  const duration = 1800;
-  let fromRotation = 0;
-  let toRotation = 0;
+    <script>
+        const options = ['威威', '茜茜'];
+        let isSpinning = false;
+        let animationTimeout = null;
 
-  init();
-  animate();
+        function spin() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            const spinBtn = document.getElementById('spinBtn');
+            const slotContent = document.getElementById('slotContent');
+            const result = document.getElementById('result');
+            const optionsDiv = document.getElementById('options');
+            
+            // 清除之前的timeout
+            if (animationTimeout) {
+                clearTimeout(animationTimeout);
+            }
+            
+            // 防止滾動（移動端優化）
+            document.body.style.overflow = 'hidden';
+            
+            spinBtn.disabled = true;
+            spinBtn.textContent = '抽獎中...';
+            
+            // 隱藏結果，顯示輪播動畫
+            result.classList.add('hidden');
+            slotContent.style.opacity = ''; // 重置opacity
+            slotContent.classList.add('rolling');
+            
+            // 隨機決定結果（各50%機率）
+            const randomResult = Math.random() < 0.5 ? options[0] : options[1];
+            
+            // 滾動時間（2-3秒）
+            const spinDuration = 2000 + Math.random() * 1000;
+            
+            // 等待動畫結束
+            animationTimeout = setTimeout(() => {
+                // 停止滾動動畫
+                slotContent.classList.remove('rolling');
+                
+                // 等待動畫完全停止後再顯示結果
+                // 使用requestAnimationFrame確保動畫完全結束
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        // 隱藏滾動選項
+                        slotContent.style.opacity = '0';
+                        
+                        // 稍等片刻後顯示結果
+                        setTimeout(() => {
+                            // 顯示結果
+                            result.textContent = randomResult;
+                            result.style.color = randomResult === '威威' ? '#ff6b6b' : '#4ecdc4';
+                            result.classList.remove('hidden');
+                            
+                            // 添加彈跳效果
+                            result.style.animation = 'none';
+                            setTimeout(() => {
+                                result.style.animation = 'bounce 0.5s ease';
+                            }, 10);
+                            
+                            // 恢復滾動
+                            document.body.style.overflow = '';
+                            
+                            isSpinning = false;
+                            spinBtn.disabled = false;
+                            spinBtn.textContent = '再玩一次';
+                        }, 200);
+                    });
+                });
+            }, spinDuration);
+        }
 
-  function init() {
-    scene = new THREE.Scene();
-
-    camera = new THREE.PerspectiveCamera(
-      45,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      100
-    );
-    camera.position.z = 6;
-
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    document.body.appendChild(renderer.domElement);
-
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const light = new THREE.DirectionalLight(0xffffff, 0.8);
-    light.position.set(5, 5, 5);
-    scene.add(light);
-
-    const front = createTextTexture("茜茜");
-    const back  = createTextTexture("威威");
-
-    const materials = [
-      new THREE.MeshStandardMaterial({ color: 0xd4af37 }), // 側邊
-      new THREE.MeshStandardMaterial({ map: front }),     // 上面
-      new THREE.MeshStandardMaterial({ map: back })       // 下面
-    ];
-
-    const geometry = new THREE.CylinderGeometry(1, 1, 0.25, 64);
-    coin = new THREE.Mesh(geometry, materials);
-    coin.rotation.z = Math.PI / 2; // 硬幣站立
-    scene.add(coin);
-
-    document.getElementById("flipBtn").addEventListener("click", flipCoin);
-    window.addEventListener("resize", onResize);
-  }
-
-  function createTextTexture(text) {
-    const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 512;
-    const ctx = canvas.getContext("2d");
-
-    ctx.fillStyle = "#f7d774";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "#000";
-    ctx.font = "bold 120px system-ui";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+        // 添加彈跳動畫
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes bounce {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.2); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
