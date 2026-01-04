@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>3D 硬幣抽籤</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      overflow: hidden;
+      touch-action: manipulation;
+      font-family: system-ui, -apple-system;
+    }
+
+    #ui {
+      position: fixed;
+      bottom: 32px;
+      width: 100%;
+      text-align: center;
+      z-index: 10;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 16px 40px;
+      border-radius: 999px;
+      border: none;
+      background: #ffcc00;
+      color: #000;
+      font-weight: 600;
+    }
+
+    button:disabled {
+      background: #666;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+<div id="ui">
+  <button id="flipBtn">擲硬幣</button>
+</div>
+
+<script type="module">
+  import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js';
+
+  let scene, camera, renderer, coin;
+  let isFlipping = false;
+  let startTime = 0;
+  const duration = 1800;
+  let fromRotation = 0;
+  let toRotation = 0;
+
+  init();
+  animate();
+
+  function init() {
+    scene = new THREE.Scene();
+
+    camera = new THREE.PerspectiveCamera(
+      45,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      100
+    );
+    camera.position.z = 6;
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    document.body.appendChild(renderer.domElement);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const light = new THREE.DirectionalLight(0xffffff, 0.8);
+    light.position.set(5, 5, 5);
+    scene.add(light);
+
+    const front = createTextTexture("茜茜");
+    const back  = createTextTexture("威威");
+
+    const materials = [
+      new THREE.MeshStandardMaterial({ color: 0xd4af37 }), // 側邊
+      new THREE.MeshStandardMaterial({ map: front }),     // 上面
+      new THREE.MeshStandardMaterial({ map: back })       // 下面
+    ];
+
+    const geometry = new THREE.CylinderGeometry(1, 1, 0.25, 64);
+    coin = new THREE.Mesh(geometry, materials);
+    coin.rotation.z = Math.PI / 2; // 硬幣站立
+    scene.add(coin);
+
+    document.getElementById("flipBtn").addEventListener("click", flipCoin);
+    window.addEventListener("resize", onResize);
+  }
+
+  function createTextTexture(text) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#f7d774";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#000";
+    ctx.font = "bold 120px system-ui";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
