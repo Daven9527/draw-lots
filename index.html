@@ -166,6 +166,265 @@
             margin: 15px 0;
         }
 
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.95) translateY(0);
+        }
+
+        /* 彈窗樣式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s;
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        /* 統計顯示 */
+        .stats-container {
+            text-align: center;
+        }
+
+        .stat-item {
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 15px;
+            font-size: 1.3em;
+        }
+
+        .stat-item.weiwei {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+        }
+
+        .stat-item.xixi {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .stat-count {
+            font-size: 2em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* 密碼輸入 */
+        .password-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin: 15px 0;
+            box-sizing: border-box;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .password-error {
+            color: #ff6b6b;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* 概率調整 */
+        .probability-control {
+            margin: 20px 0;
+        }
+
+        .probability-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .slider-container {
+            margin: 20px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 1em;
+            color: #666;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .probability-display {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .probability-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+
+        .save-btn {
+            background: linear-gradient(145deg, #4ecdc4, #44a08d);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .save-btn:active {
+            transform: scale(0.95);
+        }
+
         .options {
             position: absolute;
             width: 100%;
@@ -228,6 +487,11 @@
                 margin-top: 20px;
             }
 
+            .btn-secondary {
+                padding: 10px 20px;
+                font-size: 0.9em;
+            }
+
             .decorative-line {
                 margin: 12px 0;
             }
@@ -267,6 +531,19 @@
                 padding: 16px 30px;
                 font-size: 1.2em;
                 max-width: 100%;
+            }
+
+            .btn-secondary {
+                padding: 10px 18px;
+                font-size: 0.85em;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+
+            .modal-title {
+                font-size: 1.5em;
             }
         }
 
@@ -320,12 +597,145 @@
         <button class="btn-spin" id="spinBtn" onclick="spin()">
             開始抽獎
         </button>
+
+        <div class="btn-group">
+            <button class="btn-secondary" onclick="showStats()">
+                📊 統計
+            </button>
+            <button class="btn-secondary" onclick="showProbabilityModal()">
+                ⚙️ 調整機率
+            </button>
+        </div>
+    </div>
+
+    <!-- 統計彈窗 -->
+    <div id="statsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📊 抽獎統計</h2>
+                <button class="close-btn" onclick="closeModal('statsModal')">&times;</button>
+            </div>
+            <div class="stats-container">
+                <div class="stat-item weiwei">
+                    <div>威威</div>
+                    <div class="stat-count" id="weiweiCount">0</div>
+                </div>
+                <div class="stat-item xixi">
+                    <div>茜茜</div>
+                    <div class="stat-count" id="xixiCount">0</div>
+                </div>
+                <div style="margin-top: 20px; color: #666;">
+                    <div>總計: <strong id="totalCount">0</strong> 次</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 機率調整彈窗 -->
+    <div id="probabilityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">⚙️ 調整機率</h2>
+                <button class="close-btn" onclick="closeProbabilityModal()">&times;</button>
+            </div>
+            <div id="passwordSection">
+                <p>請輸入密碼：</p>
+                <input type="password" class="password-input" id="passwordInput" placeholder="輸入密碼" onkeypress="handlePasswordKeyPress(event)">
+                <div class="password-error" id="passwordError">密碼錯誤！</div>
+            </div>
+            <div id="probabilitySection" style="display: none;">
+                <div class="probability-control">
+                    <div class="probability-label">
+                        <span>威威機率</span>
+                        <span id="weiweiPercent">50%</span>
+                    </div>
+                    <div class="slider-container">
+                        <input type="range" min="0" max="100" value="50" class="slider" id="weiweiSlider" 
+                               oninput="updateProbability('weiwei', this.value)">
+                    </div>
+                </div>
+                <div class="probability-control">
+                    <div class="probability-label">
+                        <span>茜茜機率</span>
+                        <span id="xixiPercent">50%</span>
+                    </div>
+                    <div class="slider-container">
+                        <input type="range" min="0" max="100" value="50" class="slider" id="xixiSlider" 
+                               oninput="updateProbability('xixi', this.value)">
+                    </div>
+                </div>
+                <div class="probability-display">
+                    <div class="probability-item">
+                        <span>威威:</span>
+                        <span id="weiweiDisplay">50%</span>
+                    </div>
+                    <div class="probability-item">
+                        <span>茜茜:</span>
+                        <span id="xixiDisplay">50%</span>
+                    </div>
+                </div>
+                <button class="save-btn" onclick="saveProbability()">儲存設定</button>
+            </div>
+        </div>
     </div>
 
     <script>
         const options = ['威威', '茜茜'];
+        const PASSWORD = 'daven';
         let isSpinning = false;
         let animationTimeout = null;
+
+        // 初始化：載入統計和機率設定
+        function init() {
+            loadStats();
+            loadProbability();
+        }
+
+        // 載入統計數據
+        function loadStats() {
+            const weiweiCount = parseInt(localStorage.getItem('weiweiCount') || '0');
+            const xixiCount = parseInt(localStorage.getItem('xixiCount') || '0');
+            
+            document.getElementById('weiweiCount').textContent = weiweiCount;
+            document.getElementById('xixiCount').textContent = xixiCount;
+            document.getElementById('totalCount').textContent = weiweiCount + xixiCount;
+        }
+
+        // 更新統計
+        function updateStats(result) {
+            let weiweiCount = parseInt(localStorage.getItem('weiweiCount') || '0');
+            let xixiCount = parseInt(localStorage.getItem('xixiCount') || '0');
+            
+            if (result === '威威') {
+                weiweiCount++;
+                localStorage.setItem('weiweiCount', weiweiCount);
+            } else {
+                xixiCount++;
+                localStorage.setItem('xixiCount', xixiCount);
+            }
+            
+            loadStats();
+        }
+
+        // 載入機率設定
+        function loadProbability() {
+            const weiweiProb = parseInt(localStorage.getItem('weiweiProbability') || '50');
+            const xixiProb = parseInt(localStorage.getItem('xixiProbability') || '50');
+            
+            document.getElementById('weiweiSlider').value = weiweiProb;
+            document.getElementById('xixiSlider').value = xixiProb;
+            updateProbability('weiwei', weiweiProb);
+            updateProbability('xixi', xixiProb);
+        }
+
+        // 獲取當前機率
+        function getProbability() {
+            const weiweiProb = parseInt(localStorage.getItem('weiweiProbability') || '50');
+            return {
+                weiwei: weiweiProb / 100,
+                xixi: 1 - (weiweiProb / 100)
+            };
+        }
 
         function spin() {
             if (isSpinning) return;
@@ -352,8 +762,9 @@
             slotContent.style.opacity = ''; // 重置opacity
             slotContent.classList.add('rolling');
             
-            // 隨機決定結果（各50%機率）
-            const randomResult = Math.random() < 0.5 ? options[0] : options[1];
+            // 根據設定的機率決定結果
+            const prob = getProbability();
+            const randomResult = Math.random() < prob.weiwei ? options[0] : options[1];
             
             // 滾動時間（2-3秒）
             const spinDuration = 2000 + Math.random() * 1000;
@@ -377,6 +788,9 @@
                             result.style.color = randomResult === '威威' ? '#ff6b6b' : '#4ecdc4';
                             result.classList.remove('hidden');
                             
+                            // 更新統計
+                            updateStats(randomResult);
+                            
                             // 添加彈跳效果
                             result.style.animation = 'none';
                             setTimeout(() => {
@@ -395,6 +809,106 @@
             }, spinDuration);
         }
 
+        // 顯示統計彈窗
+        function showStats() {
+            loadStats();
+            const modal = document.getElementById('statsModal');
+            modal.classList.add('show');
+            modal.onclick = function(e) {
+                if (e.target === modal) {
+                    closeModal('statsModal');
+                }
+            };
+        }
+
+        // 關閉彈窗
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // 顯示機率調整彈窗
+        function showProbabilityModal() {
+            const modal = document.getElementById('probabilityModal');
+            const passwordSection = document.getElementById('passwordSection');
+            const probabilitySection = document.getElementById('probabilitySection');
+            
+            // 重置
+            passwordSection.style.display = 'block';
+            probabilitySection.style.display = 'none';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordError').style.display = 'none';
+            
+            modal.classList.add('show');
+            modal.onclick = function(e) {
+                if (e.target === modal) {
+                    closeProbabilityModal();
+                }
+            };
+        }
+
+        // 處理密碼輸入（按Enter）
+        function handlePasswordKeyPress(event) {
+            if (event.key === 'Enter') {
+                checkPassword();
+            }
+        }
+
+        // 驗證密碼
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            const errorDiv = document.getElementById('passwordError');
+            const passwordSection = document.getElementById('passwordSection');
+            const probabilitySection = document.getElementById('probabilitySection');
+            
+            if (password === PASSWORD) {
+                passwordSection.style.display = 'none';
+                probabilitySection.style.display = 'block';
+                loadProbability();
+            } else {
+                errorDiv.style.display = 'block';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 2000);
+            }
+        }
+
+        // 關閉機率調整彈窗
+        function closeProbabilityModal() {
+            closeModal('probabilityModal');
+        }
+
+        // 更新機率顯示
+        function updateProbability(type, value) {
+            const intValue = parseInt(value);
+            const otherValue = 100 - intValue;
+            
+            if (type === 'weiwei') {
+                document.getElementById('weiweiPercent').textContent = intValue + '%';
+                document.getElementById('weiweiDisplay').textContent = intValue + '%';
+                document.getElementById('xixiSlider').value = otherValue;
+                document.getElementById('xixiPercent').textContent = otherValue + '%';
+                document.getElementById('xixiDisplay').textContent = otherValue + '%';
+            } else {
+                document.getElementById('xixiPercent').textContent = intValue + '%';
+                document.getElementById('xixiDisplay').textContent = intValue + '%';
+                document.getElementById('weiweiSlider').value = otherValue;
+                document.getElementById('weiweiPercent').textContent = otherValue + '%';
+                document.getElementById('weiweiDisplay').textContent = otherValue + '%';
+            }
+        }
+
+        // 儲存機率設定
+        function saveProbability() {
+            const weiweiProb = document.getElementById('weiweiSlider').value;
+            const xixiProb = document.getElementById('xixiSlider').value;
+            
+            localStorage.setItem('weiweiProbability', weiweiProb);
+            localStorage.setItem('xixiProbability', xixiProb);
+            
+            alert('機率設定已儲存！');
+            closeProbabilityModal();
+        }
+
         // 添加彈跳動畫
         const style = document.createElement('style');
         style.textContent = `
@@ -404,6 +918,9 @@
             }
         `;
         document.head.appendChild(style);
+
+        // 頁面載入時初始化
+        window.onload = init;
     </script>
 </body>
 </html>
