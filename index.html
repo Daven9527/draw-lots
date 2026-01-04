@@ -1,926 +1,1189 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>拉霸機</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Microsoft JhengHei', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .slot-machine {
-            background: linear-gradient(145deg, #ff6b6b, #ee5a6f);
-            border-radius: 15px;
-            padding: 30px;
-            margin: 30px 0;
-            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2),
-                        0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .slot-window {
-            background: #fff;
-            border: 8px solid #333;
-            border-radius: 10px;
-            height: 200px;
-            margin: 20px auto;
-            overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .slot-content {
-            position: absolute;
-            width: 100%;
-            top: 0;
-            left: 0;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-
-        .slot-content.rolling {
-            opacity: 1;
-            animation: roll 0.15s infinite linear;
-        }
-
-        @keyframes roll {
-            0% {
-                transform: translateY(0);
-            }
-            100% {
-                transform: translateY(-200px);
-            }
-        }
-
-        /* 移動端動畫調整 */
-        @media screen and (max-width: 768px) {
-            @keyframes roll {
-                0% {
-                    transform: translateY(0);
-                }
-                100% {
-                    transform: translateY(-180px);
-                }
-            }
-        }
-
-        @media screen and (max-width: 480px) {
-            @keyframes roll {
-                0% {
-                    transform: translateY(0);
-                }
-                100% {
-                    transform: translateY(-160px);
-                }
-            }
-        }
-
-        .result {
-            position: absolute;
-            width: 100%;
-            height: 200px;
-            font-size: 4em;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            top: 0;
-            left: 0;
-            z-index: 2;
-            transition: opacity 0.3s;
-        }
-
-        .result.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .btn-spin {
-            background: linear-gradient(145deg, #4ecdc4, #44a08d);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.5em;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            margin-top: 20px;
-        }
-
-        .btn-spin:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn-spin:active {
-            transform: scale(0.95) translateY(0);
-        }
-
-        .btn-spin:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .decorative-line {
-            height: 4px;
-            background: linear-gradient(90deg, transparent, #333, transparent);
-            margin: 15px 0;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .btn-secondary {
-            background: linear-gradient(145deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            font-size: 1em;
-            font-weight: bold;
-            border-radius: 25px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn-secondary:active {
-            transform: scale(0.95) translateY(0);
-        }
-
-        /* 彈窗樣式 */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            animation: fadeIn 0.3s;
-        }
-
-        .modal.show {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-content {
-            background-color: white;
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 400px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.3s;
-            position: relative;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-title {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 2em;
-            cursor: pointer;
-            color: #999;
-            line-height: 1;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .close-btn:hover {
-            color: #333;
-        }
-
-        /* 統計顯示 */
-        .stats-container {
-            text-align: center;
-        }
-
-        .stat-item {
-            padding: 20px;
-            margin: 15px 0;
-            border-radius: 15px;
-            font-size: 1.3em;
-        }
-
-        .stat-item.weiwei {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
-            color: white;
-        }
-
-        .stat-item.xixi {
-            background: linear-gradient(135deg, #4ecdc4, #44a08d);
-            color: white;
-        }
-
-        .stat-count {
-            font-size: 2em;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        /* 密碼輸入 */
-        .password-input {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.2em;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            margin: 15px 0;
-            box-sizing: border-box;
-        }
-
-        .password-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .password-error {
-            color: #ff6b6b;
-            margin-top: 10px;
-            display: none;
-        }
-
-        /* 概率調整 */
-        .probability-control {
-            margin: 20px 0;
-        }
-
-        .probability-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-            font-weight: bold;
-        }
-
-        .slider-container {
-            margin: 20px 0;
-        }
-
-        .slider-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 1em;
-            color: #666;
-        }
-
-        .slider {
-            width: 100%;
-            height: 8px;
-            border-radius: 5px;
-            background: #ddd;
-            outline: none;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: #667eea;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .slider::-moz-range-thumb {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: #667eea;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .probability-display {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f5f5f5;
-            border-radius: 10px;
-        }
-
-        .probability-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-            font-size: 1.1em;
-        }
-
-        .save-btn {
-            background: linear-gradient(145deg, #4ecdc4, #44a08d);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            font-size: 1.1em;
-            font-weight: bold;
-            border-radius: 25px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        .save-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .save-btn:active {
-            transform: scale(0.95);
-        }
-
-        .options {
-            position: absolute;
-            width: 100%;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-
-        .option-item {
-            height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 4em;
-            font-weight: bold;
-        }
-
-        /* 移動設備優化 */
-        @media screen and (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .container {
-                padding: 20px;
-                border-radius: 15px;
-            }
-
-            h1 {
-                font-size: 1.8em;
-                margin-bottom: 20px;
-            }
-
-            .slot-machine {
-                padding: 20px;
-                margin: 20px 0;
-            }
-
-            .slot-window {
-                height: 180px;
-                border-width: 6px;
-                margin: 15px auto;
-            }
-
-            .result {
-                height: 180px;
-                font-size: 3em;
-            }
-
-            .option-item {
-                height: 180px;
-                font-size: 3em;
-            }
-
-            .btn-spin {
-                padding: 18px 35px;
-                font-size: 1.3em;
-                width: 100%;
-                max-width: 300px;
-                margin-top: 20px;
-            }
-
-            .btn-secondary {
-                padding: 10px 20px;
-                font-size: 0.9em;
-            }
-
-            .decorative-line {
-                margin: 12px 0;
-            }
-        }
-
-        @media screen and (max-width: 480px) {
-            .container {
-                padding: 15px;
-            }
-
-            h1 {
-                font-size: 1.5em;
-                margin-bottom: 15px;
-            }
-
-            .slot-machine {
-                padding: 15px;
-                margin: 15px 0;
-            }
-
-            .slot-window {
-                height: 160px;
-                border-width: 5px;
-            }
-
-            .result {
-                height: 160px;
-                font-size: 2.5em;
-            }
-
-            .option-item {
-                height: 160px;
-                font-size: 2.5em;
-            }
-
-            .btn-spin {
-                padding: 16px 30px;
-                font-size: 1.2em;
-                max-width: 100%;
-            }
-
-            .btn-secondary {
-                padding: 10px 18px;
-                font-size: 0.85em;
-            }
-
-            .modal-content {
-                padding: 20px;
-            }
-
-            .modal-title {
-                font-size: 1.5em;
-            }
-        }
-
-        /* 觸摸優化 */
-        .btn-spin {
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        /* 防止移動端雙擊縮放 */
-        * {
-            touch-action: pan-y;
-        }
-
-        /* 優化動畫性能 */
-        .slot-content,
-        .result,
-        .option-item {
-            will-change: transform;
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>拉霸機</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎰</text></svg>" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; touch-action: pan-y; }
+
+    body {
+      font-family: 'Microsoft JhengHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      max-width: 500px;
+      width: 100%;
+      position: relative;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .slot-machine {
+      background: linear-gradient(145deg, #ff6b6b, #ee5a6f);
+      border-radius: 15px;
+      padding: 30px;
+      margin: 30px 0;
+      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2),
+                  0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .slot-window {
+      background: #fff;
+      border: 8px solid #333;
+      border-radius: 10px;
+      height: 200px;
+      margin: 20px auto;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .slot-content {
+      position: absolute;
+      width: 100%;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .slot-content.rolling {
+      opacity: 1;
+      animation: roll 0.15s infinite linear;
+    }
+
+    @keyframes roll {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-200px); }
+    }
+
+    .options {
+      position: absolute;
+      width: 100%;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    .option-item {
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4em;
+      font-weight: bold;
+    }
+
+    .result {
+      position: absolute;
+      width: 100%;
+      height: 200px;
+      font-size: 4em;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      top: 0;
+      left: 0;
+      z-index: 2;
+      transition: opacity 0.3s;
+    }
+
+    .result.hidden { opacity: 0; pointer-events: none; }
+
+    .btn-spin {
+      background: linear-gradient(145deg, #4ecdc4, #44a08d);
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      font-size: 1.5em;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      margin-top: 20px;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .btn-spin:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); }
+    .btn-spin:active { transform: scale(0.95) translateY(0); }
+    .btn-spin:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+    .decorative-line {
+      height: 4px;
+      background: linear-gradient(90deg, transparent, #333, transparent);
+      margin: 15px 0;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .btn-secondary {
+      background: linear-gradient(145deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      font-size: 1em;
+      font-weight: bold;
+      border-radius: 25px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); }
+    .btn-secondary:active { transform: scale(0.95) translateY(0); }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      backdrop-filter: blur(5px);
+      animation: fadeIn 0.3s;
+    }
+
+    .modal.show {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+
+    .modal-content {
+      background-color: white;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 420px;
+      width: 92%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.3s;
+      position: relative;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title { font-size: 1.8em; font-weight: bold; color: #333; }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 2em;
+      cursor: pointer;
+      color: #999;
+      line-height: 1;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .close-btn:hover { color: #333; }
+
+    /* Stats */
+    .stats-container { text-align: center; }
+    .stat-item {
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 15px;
+      font-size: 1.3em;
+    }
+
+    .stat-item.weiwei { background: linear-gradient(135deg, #ff6b6b, #ee5a6f); color: #fff; }
+    .stat-item.xixi { background: linear-gradient(135deg, #4ecdc4, #44a08d); color: #fff; }
+
+    .stat-count { font-size: 2em; font-weight: bold; margin-top: 10px; }
+
+    /* Probability */
+    .password-input {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.2em;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      margin: 15px 0;
+      box-sizing: border-box;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .password-input:focus { 
+      outline: none; 
+      border-color: #667eea; 
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .password-error {
+      color: #ff6b6b;
+      margin-top: 10px;
+      display: none;
+      font-weight: bold;
+    }
+
+    .probability-control { margin: 20px 0; }
+
+    .probability-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+      font-weight: bold;
+    }
+
+    .slider {
+      width: 100%;
+      height: 8px;
+      border-radius: 5px;
+      background: #ddd;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .slider::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .probability-display {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 10px;
+    }
+
+    .probability-item {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+      font-size: 1.1em;
+    }
+
+    .save-btn {
+      background: linear-gradient(145deg, #4ecdc4, #44a08d);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-size: 1.1em;
+      font-weight: bold;
+      border-radius: 25px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .save-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+    .save-btn:active { transform: scale(0.95); }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 0.9em;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .status-bar {
+      margin-top: 10px;
+      font-size: 0.9em;
+      color: #666;
+      opacity: 0.85;
+    }
+
+    .cors-warning {
+      background: linear-gradient(135deg, #ff9800, #f57c00);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+      font-size: 0.95em;
+      line-height: 1.6;
+      box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+      display: none;
+    }
+
+    .cors-warning.show {
+      display: block;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .cors-warning strong {
+      font-size: 1.1em;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .cors-warning code {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Mobile */
+    @media screen and (max-width: 768px) {
+      body { padding: 10px; }
+      .container { padding: 20px; border-radius: 15px; }
+      h1 { font-size: 1.8em; margin-bottom: 20px; }
+      .slot-machine { padding: 20px; margin: 20px 0; }
+      .slot-window { height: 180px; border-width: 6px; margin: 15px auto; }
+      .result { height: 180px; font-size: 3em; }
+      .option-item { height: 180px; font-size: 3em; }
+      @keyframes roll { 0% { transform: translateY(0); } 100% { transform: translateY(-180px); } }
+    }
+
+    @media screen and (max-width: 480px) {
+      .container { padding: 15px; }
+      h1 { font-size: 1.5em; margin-bottom: 15px; }
+      .slot-machine { padding: 15px; margin: 15px 0; }
+      .slot-window { height: 160px; border-width: 5px; }
+      .result { height: 160px; font-size: 2.5em; }
+      .option-item { height: 160px; font-size: 2.5em; }
+      @keyframes roll { 0% { transform: translateY(0); } 100% { transform: translateY(-160px); } }
+      .modal-content { padding: 20px; }
+      .modal-title { font-size: 1.5em; }
+    }
+
+    /* Performance */
+    .slot-content, .result, .option-item {
+      will-change: transform;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>🎰 拉霸機 🎰</h1>
+  <div class="container">
+    <h1>🎰 拉霸機 🎰</h1>
+
+    <div class="cors-warning" id="corsWarning">
+      <strong>⚠️ 重要提示：請使用 HTTP 伺服器運行此頁面</strong>
+      檢測到您正在使用本地文件模式 (file://)，這會導致 CORS 錯誤，無法連接 Google Apps Script API。<br><br>
+      <strong>解決方法：</strong><br>
+      1. <strong>VS Code:</strong> 安裝 "Live Server" 擴展，右鍵點擊 index.html → "Open with Live Server"<br>
+      2. <strong>Python:</strong> 在文件夾中運行 <code>python -m http.server 8000</code>，然後訪問 <code>http://localhost:8000</code><br>
+      3. <strong>Node.js:</strong> 安裝 http-server: <code>npx http-server</code>
+    </div>
+
+    <div class="slot-machine">
+      <div class="slot-window" id="slotWindow">
+        <div class="result" id="result">?</div>
+        <div class="slot-content" id="slotContent">
+          <div class="options" id="options">
+            <div class="option-item" style="color:#ff6b6b;">威威</div>
+            <div class="option-item" style="color:#4ecdc4;">茜茜</div>
+            <div class="option-item" style="color:#ff6b6b;">威威</div>
+            <div class="option-item" style="color:#4ecdc4;">茜茜</div>
+            <div class="option-item" style="color:#ff6b6b;">威威</div>
+            <div class="option-item" style="color:#4ecdc4;">茜茜</div>
+            <div class="option-item" style="color:#ff6b6b;">威威</div>
+            <div class="option-item" style="color:#4ecdc4;">茜茜</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decorative-line"></div>
+
+    <button class="btn-spin" id="spinBtn" onclick="spin()">開始抽獎</button>
+
+    <div class="btn-group">
+      <button class="btn-secondary" onclick="showStats()">📊 統計</button>
+      <button class="btn-secondary" onclick="showProbabilityModal()">⚙️ 調整機率</button>
+    </div>
+
+    <div class="status-bar" id="statusBar">正在載入設定...</div>
+  </div>
+
+  <!-- Stats Modal -->
+  <div id="statsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">📊 抽獎統計</h2>
+        <button class="close-btn" onclick="closeModal('statsModal')">&times;</button>
+      </div>
+
+      <div class="stats-container">
+        <div class="stat-item weiwei">
+          <div>威威</div>
+          <div class="stat-count" id="weiweiCount">0</div>
+        </div>
+
+        <div class="stat-item xixi">
+          <div>茜茜</div>
+          <div class="stat-count" id="xixiCount">0</div>
+        </div>
+
+        <div style="margin-top: 20px; color: #666;">
+          <div>總計: <strong id="totalCount">0</strong> 次</div>
+        </div>
+
+        <div class="hint">
+          ✅ 統計與機率為全體共用（Google Sheet）<br>
+          每個人看到結果都一致
+        </div>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+          <button class="btn-secondary" onclick="showResetPasswordSection()" style="background: linear-gradient(145deg, #f44336, #d32f2f);">
+            🔄 重置統計
+          </button>
+        </div>
+
+        <div id="resetPasswordSection" style="display: none; margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 10px;">
+          <p style="margin-bottom: 10px; font-weight: bold;">請輸入密碼以重置統計：</p>
+          <input
+            type="password"
+            class="password-input"
+            id="resetPasswordInput"
+            placeholder="輸入密碼"
+            onkeypress="handleResetPasswordKeyPress(event)"
+            style="margin-bottom: 10px;"
+          />
+          <div class="password-error" id="resetPasswordError" style="margin-bottom: 10px;">密碼錯誤！</div>
+          <div style="display: flex; gap: 10px;">
+            <button class="save-btn" onclick="resetStats()" style="flex: 1; margin: 0;">確認重置</button>
+            <button class="btn-secondary" onclick="hideResetPasswordSection()" style="flex: 1; margin: 0; background: #666;">取消</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Probability Modal -->
+  <div id="probabilityModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">⚙️ 調整機率</h2>
+        <button class="close-btn" onclick="closeProbabilityModal()">&times;</button>
+      </div>
+
+      <div id="passwordSection">
+        <p>請登入以調整機率：</p>
+        <input
+          type="text"
+          class="password-input"
+          id="usernameInput"
+          placeholder="帳號"
+          onkeypress="handleLoginKeyPress(event)"
+          style="margin-bottom: 10px;"
+        />
+        <input
+          type="password"
+          class="password-input"
+          id="passwordInput"
+          placeholder="密碼"
+          onkeypress="handleLoginKeyPress(event)"
+        />
+        <div class="password-error" id="passwordError">帳號或密碼錯誤！</div>
+        <button class="save-btn" style="margin-top: 10px;" onclick="checkLogin()">登入</button>
+      </div>
+
+      <div id="probabilitySection" style="display:none;">
+        <div class="probability-control">
+          <div class="probability-label">
+            <span>威威機率</span>
+            <span id="weiweiPercent">50%</span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value="50"
+            class="slider"
+            id="weiweiSlider"
+            oninput="updateProbability('weiwei', this.value)"
+          />
+        </div>
+
+        <div class="probability-control">
+          <div class="probability-label">
+            <span>茜茜機率</span>
+            <span id="xixiPercent">50%</span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value="50"
+            class="slider"
+            id="xixiSlider"
+            oninput="updateProbability('xixi', this.value)"
+          />
+        </div>
+
+        <div class="probability-display">
+          <div class="probability-item">
+            <span>威威:</span>
+            <span id="weiweiDisplay">50%</span>
+          </div>
+          <div class="probability-item">
+            <span>茜茜:</span>
+            <span id="xixiDisplay">50%</span>
+          </div>
+        </div>
+
+        <button class="save-btn" onclick="saveProbability()">儲存設定（同步所有人）</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ✅ 你的 Apps Script URL
+    const API_URL =
+      "https://script.google.com/macros/s/AKfycbwwESv5cX-FWZqxdT8YaaxrWCGGjgHH7t0t4DEV_QlFUmdXqlaszblLeh1vp9ECbrBcTA/exec";
+
+    // 驗證 API URL
+    if (!API_URL || !API_URL.startsWith('https://')) {
+      console.error('⚠️ API_URL 未正確設置！');
+    }
+
+    const options = ["威威", "茜茜"];
+    let isSpinning = false;
+    let animationTimeout = null;
+    let cachedConfig = null;
+
+    // ====== UI Helper ======
+    function setStatus(text) {
+      const bar = document.getElementById("statusBar");
+      if (bar) bar.textContent = text;
+    }
+
+    // ====== API ======
+    // 檢測是否在本地文件模式（file://）
+    function isLocalFile() {
+      return window.location.protocol === 'file:' || window.location.protocol === '';
+    }
+
+    // JSONP 備選方案（繞過 CORS）
+    function apiGetJSONP(params) {
+      return new Promise((resolve, reject) => {
+        // 創建唯一的回調函數名
+        const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         
-        <div class="slot-machine">
-            <div class="slot-window" id="slotWindow">
-                <div class="result" id="result">?</div>
-                <div class="slot-content" id="slotContent">
-                    <div class="options" id="options">
-                        <div class="option-item" style="color: #ff6b6b;">威威</div>
-                        <div class="option-item" style="color: #4ecdc4;">茜茜</div>
-                        <div class="option-item" style="color: #ff6b6b;">威威</div>
-                        <div class="option-item" style="color: #4ecdc4;">茜茜</div>
-                        <div class="option-item" style="color: #ff6b6b;">威威</div>
-                        <div class="option-item" style="color: #4ecdc4;">茜茜</div>
-                        <div class="option-item" style="color: #ff6b6b;">威威</div>
-                        <div class="option-item" style="color: #4ecdc4;">茜茜</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        let script;
+        let timeout;
+        
+        // 設置超時（10秒）
+        timeout = setTimeout(() => {
+          if (script && document.body.contains(script)) {
+            document.body.removeChild(script);
+          }
+          delete window[callbackName];
+          reject(new Error('JSONP 請求超時'));
+        }, 10000);
+        
+        // 將回調函數添加到 window 對象
+        window[callbackName] = function(data) {
+          clearTimeout(timeout);
+          // 清理
+          delete window[callbackName];
+          if (script && document.body.contains(script)) {
+            document.body.removeChild(script);
+          }
+          
+          if (data && data.ok !== false) {
+            resolve(data);
+          } else {
+            reject(new Error(data?.error || 'JSONP 請求失敗'));
+          }
+        };
+        
+        // 構建 URL，添加 callback 參數
+        const urlParams = new URLSearchParams(params);
+        urlParams.set('callback', callbackName);
+        const url = API_URL + "?" + urlParams.toString();
+        
+        // 創建 script 標籤
+        script = document.createElement('script');
+        script.src = url;
+        script.onerror = () => {
+          clearTimeout(timeout);
+          delete window[callbackName];
+          if (script && document.body.contains(script)) {
+            document.body.removeChild(script);
+          }
+          reject(new Error('JSONP 請求失敗：無法載入腳本'));
+        };
+        
+        // 添加到頁面觸發請求
+        document.body.appendChild(script);
+      });
+    }
 
-        <div class="decorative-line"></div>
-
-        <button class="btn-spin" id="spinBtn" onclick="spin()">
-            開始抽獎
-        </button>
-
-        <div class="btn-group">
-            <button class="btn-secondary" onclick="showStats()">
-                📊 統計
-            </button>
-            <button class="btn-secondary" onclick="showProbabilityModal()">
-                ⚙️ 調整機率
-            </button>
-        </div>
-    </div>
-
-    <!-- 統計彈窗 -->
-    <div id="statsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">📊 抽獎統計</h2>
-                <button class="close-btn" onclick="closeModal('statsModal')">&times;</button>
-            </div>
-            <div class="stats-container">
-                <div class="stat-item weiwei">
-                    <div>威威</div>
-                    <div class="stat-count" id="weiweiCount">0</div>
-                </div>
-                <div class="stat-item xixi">
-                    <div>茜茜</div>
-                    <div class="stat-count" id="xixiCount">0</div>
-                </div>
-                <div style="margin-top: 20px; color: #666;">
-                    <div>總計: <strong id="totalCount">0</strong> 次</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 機率調整彈窗 -->
-    <div id="probabilityModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">⚙️ 調整機率</h2>
-                <button class="close-btn" onclick="closeProbabilityModal()">&times;</button>
-            </div>
-            <div id="passwordSection">
-                <p>請輸入密碼：</p>
-                <input type="password" class="password-input" id="passwordInput" placeholder="輸入密碼" onkeypress="handlePasswordKeyPress(event)">
-                <div class="password-error" id="passwordError">密碼錯誤！</div>
-            </div>
-            <div id="probabilitySection" style="display: none;">
-                <div class="probability-control">
-                    <div class="probability-label">
-                        <span>威威機率</span>
-                        <span id="weiweiPercent">50%</span>
-                    </div>
-                    <div class="slider-container">
-                        <input type="range" min="0" max="100" value="50" class="slider" id="weiweiSlider" 
-                               oninput="updateProbability('weiwei', this.value)">
-                    </div>
-                </div>
-                <div class="probability-control">
-                    <div class="probability-label">
-                        <span>茜茜機率</span>
-                        <span id="xixiPercent">50%</span>
-                    </div>
-                    <div class="slider-container">
-                        <input type="range" min="0" max="100" value="50" class="slider" id="xixiSlider" 
-                               oninput="updateProbability('xixi', this.value)">
-                    </div>
-                </div>
-                <div class="probability-display">
-                    <div class="probability-item">
-                        <span>威威:</span>
-                        <span id="weiweiDisplay">50%</span>
-                    </div>
-                    <div class="probability-item">
-                        <span>茜茜:</span>
-                        <span id="xixiDisplay">50%</span>
-                    </div>
-                </div>
-                <button class="save-btn" onclick="saveProbability()">儲存設定</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const options = ['威威', '茜茜'];
-        const PASSWORD = 'daven';
-        let isSpinning = false;
-        let animationTimeout = null;
-
-        // 初始化：載入統計和機率設定
-        function init() {
-            loadStats();
-            loadProbability();
+    async function apiGet(params, useJSONP = false) {
+      try {
+        // 檢查是否為本地文件模式
+        if (isLocalFile()) {
+          console.error('❌ 檢測到本地文件模式 (file://)');
+          console.error('❌ CORS 政策不允許從 file:// 發起請求');
+          return {
+            ok: false,
+            error: '請使用 HTTP 伺服器運行此頁面！\n\n解決方法：\n1. 使用 VS Code 的 Live Server 擴展\n2. 或運行: python -m http.server 8000\n然後訪問: http://localhost:8000/index.html'
+          };
         }
 
-        // 載入統計數據
-        function loadStats() {
-            const weiweiCount = parseInt(localStorage.getItem('weiweiCount') || '0');
-            const xixiCount = parseInt(localStorage.getItem('xixiCount') || '0');
-            
-            document.getElementById('weiweiCount').textContent = weiweiCount;
-            document.getElementById('xixiCount').textContent = xixiCount;
-            document.getElementById('totalCount').textContent = weiweiCount + xixiCount;
+        // 如果指定使用 JSONP 或之前 fetch 失敗過，使用 JSONP
+        if (useJSONP) {
+          console.log('使用 JSONP 方式請求 API...');
+          return await apiGetJSONP(params);
         }
 
-        // 更新統計
-        function updateStats(result) {
-            let weiweiCount = parseInt(localStorage.getItem('weiweiCount') || '0');
-            let xixiCount = parseInt(localStorage.getItem('xixiCount') || '0');
-            
-            if (result === '威威') {
-                weiweiCount++;
-                localStorage.setItem('weiweiCount', weiweiCount);
-            } else {
-                xixiCount++;
-                localStorage.setItem('xixiCount', xixiCount);
+        // 嘗試使用 fetch（標準方式）
+        const url = API_URL + "?" + new URLSearchParams(params).toString();
+        
+        try {
+          const res = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'omit'
+          });
+          
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          }
+          
+          const data = await res.json();
+          return data;
+        } catch (fetchError) {
+          // 如果 fetch 失敗（通常是 CORS 問題），自動回退到 JSONP
+          console.warn('Fetch 請求失敗，嘗試使用 JSONP 方式:', fetchError.message);
+          return await apiGetJSONP(params);
+        }
+      } catch (error) {
+        console.error("API 請求失敗:", error);
+        
+        // 提供更詳細的錯誤信息
+        let errorMsg = error.message || "網路連接失敗";
+        
+        if (error.message.includes('CORS') || error.message.includes('Failed to fetch') || error.message.includes('JSONP')) {
+          errorMsg = '無法連接到 Google Apps Script API。\n\n📝 Google Apps Script 需要配置：\n1. 部署為 Web App，執行身份選擇「任何人」\n2. 在 doGet 函數中添加 CORS 頭部，或支持 callback 參數（JSONP）\n\n範例代碼：\nfunction doGet(e) {\n  const callback = e.parameter.callback;\n  const data = { ok: true, ... };\n  \n  if (callback) {\n    // JSONP 模式\n    return ContentService.createTextOutput(callback + "(" + JSON.stringify(data) + ")").setMimeType(ContentService.MimeType.JAVASCRIPT);\n  } else {\n    // 標準 JSON（需要 CORS）\n    return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON).setHeaders({\n      "Access-Control-Allow-Origin": "*"\n    });\n  }\n}';
+        }
+        
+        return { ok: false, error: errorMsg };
+      }
+    }
+
+    async function loadConfig() {
+      try {
+        setStatus("正在同步設定...");
+        const data = await apiGet({ action: "config" });
+
+        if (!data || !data.ok) {
+          const errorMsg = data?.error || "未知錯誤";
+          console.error("載入設定失敗:", errorMsg);
+          
+          // 使用緩存數據（如果有的話）
+          if (cachedConfig) {
+            updateUIFromConfig(cachedConfig);
+            setStatus("⚠️ 使用緩存數據（無法同步到伺服器）");
+          } else {
+            setStatus("❌ 同步失敗：" + (errorMsg.length > 50 ? errorMsg.substring(0, 50) + "..." : errorMsg));
+            // 只在首次失敗且無緩存時顯示詳細錯誤
+            if (errorMsg.includes('CORS') || errorMsg.includes('JSONP') || errorMsg.includes('Google Apps Script')) {
+              console.error("詳細錯誤信息:", errorMsg);
+              // 不彈出 alert，只在控制台顯示詳細信息，避免打擾用戶
             }
-            
-            loadStats();
+          }
+          return;
         }
 
-        // 載入機率設定
-        function loadProbability() {
-            const weiweiProb = parseInt(localStorage.getItem('weiweiProbability') || '50');
-            const xixiProb = parseInt(localStorage.getItem('xixiProbability') || '50');
-            
-            document.getElementById('weiweiSlider').value = weiweiProb;
-            document.getElementById('xixiSlider').value = xixiProb;
-            updateProbability('weiwei', weiweiProb);
-            updateProbability('xixi', xixiProb);
+        // 驗證數據結構
+        if (typeof data.weiweiCount !== "number" || typeof data.xixiCount !== "number" || typeof data.weiweiProbability !== "number") {
+          throw new Error("API 返回數據格式不正確");
         }
 
-        // 獲取當前機率
-        function getProbability() {
-            const weiweiProb = parseInt(localStorage.getItem('weiweiProbability') || '50');
-            return {
-                weiwei: weiweiProb / 100,
-                xixi: 1 - (weiweiProb / 100)
-            };
+        cachedConfig = data;
+        updateUIFromConfig(data);
+        setStatus(`同步完成 ✅`);
+      } catch (error) {
+        console.error("loadConfig 錯誤:", error);
+        setStatus("同步失敗：" + error.message);
+        if (!cachedConfig) {
+          alert("載入設定時發生錯誤：" + error.message);
+        }
+      }
+    }
+
+    function updateUIFromConfig(data) {
+      // 統計
+      document.getElementById("weiweiCount").textContent = data.weiweiCount || 0;
+      document.getElementById("xixiCount").textContent = data.xixiCount || 0;
+      document.getElementById("totalCount").textContent = (data.weiweiCount || 0) + (data.xixiCount || 0);
+
+      // 機率（只在彈窗打開時更新）
+      const weiweiSlider = document.getElementById("weiweiSlider");
+      const xixiSlider = document.getElementById("xixiSlider");
+      if (weiweiSlider && xixiSlider) {
+        const prob = data.weiweiProbability || 50;
+        weiweiSlider.value = prob;
+        xixiSlider.value = 100 - prob;
+        updateProbability("weiwei", prob);
+      }
+    }
+
+    async function getProbability() {
+      try {
+        if (!cachedConfig) await loadConfig();
+        const p = cachedConfig?.weiweiProbability ?? 50; // 默認50%
+        return { weiwei: p / 100, xixi: 1 - p / 100 };
+      } catch (error) {
+        console.error("getProbability 錯誤:", error);
+        // 返回默認值
+        return { weiwei: 0.5, xixi: 0.5 };
+      }
+    }
+
+    async function updateStats(result) {
+      try {
+        // 嘗試更新統計，參數格式可能需要根據後端調整
+        const data = await apiGet({ 
+          action: "spin", 
+          result: result 
+        });
+
+        if (!data || !data.ok) {
+          const errorMsg = data?.error || "未知錯誤";
+          console.error("更新統計失敗:", errorMsg);
+          
+          // 如果後端返回 "Unknown GET action"，提供幫助信息
+          if (errorMsg.includes("Unknown") || errorMsg.includes("action")) {
+            console.warn("⚠️ 後端可能不支持 'spin' action，請檢查 Google Apps Script 代碼");
+            console.warn("⚠️ 後端應該處理 action='spin' 並更新統計數據");
+            setStatus("⚠️ 統計更新失敗（後端配置問題）");
+          } else {
+            setStatus("統計更新失敗：" + errorMsg);
+          }
+          
+          // 不顯示彈窗，只在狀態欄提示（不影響用戶體驗）
+          return;
+        }
+        
+        // 成功後重新載入配置
+        await loadConfig();
+      } catch (error) {
+        console.error("updateStats 錯誤:", error);
+        setStatus("統計更新失敗：" + error.message);
+      }
+    }
+
+    async function saveProbability() {
+      try {
+        const weiweiProb = parseInt(document.getElementById("weiweiSlider").value);
+
+        if (isNaN(weiweiProb) || weiweiProb < 0 || weiweiProb > 100) {
+          alert("機率必須在 0-100 之間");
+          return;
         }
 
-        function spin() {
-            if (isSpinning) return;
-            
-            isSpinning = true;
-            const spinBtn = document.getElementById('spinBtn');
-            const slotContent = document.getElementById('slotContent');
-            const result = document.getElementById('result');
-            const optionsDiv = document.getElementById('options');
-            
-            // 清除之前的timeout
-            if (animationTimeout) {
-                clearTimeout(animationTimeout);
-            }
-            
-            // 防止滾動（移動端優化）
-            document.body.style.overflow = 'hidden';
-            
-            spinBtn.disabled = true;
-            spinBtn.textContent = '抽獎中...';
-            
-            // 隱藏結果，顯示輪播動畫
-            result.classList.add('hidden');
-            slotContent.style.opacity = ''; // 重置opacity
-            slotContent.classList.add('rolling');
-            
-            // 根據設定的機率決定結果
-            const prob = getProbability();
-            const randomResult = Math.random() < prob.weiwei ? options[0] : options[1];
-            
-            // 滾動時間（2-3秒）
-            const spinDuration = 2000 + Math.random() * 1000;
-            
-            // 等待動畫結束
-            animationTimeout = setTimeout(() => {
-                // 停止滾動動畫
-                slotContent.classList.remove('rolling');
-                
-                // 等待動畫完全停止後再顯示結果
-                // 使用requestAnimationFrame確保動畫完全結束
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        // 隱藏滾動選項
-                        slotContent.style.opacity = '0';
-                        
-                        // 稍等片刻後顯示結果
-                        setTimeout(() => {
-                            // 顯示結果
-                            result.textContent = randomResult;
-                            result.style.color = randomResult === '威威' ? '#ff6b6b' : '#4ecdc4';
-                            result.classList.remove('hidden');
-                            
-                            // 更新統計
-                            updateStats(randomResult);
-                            
-                            // 添加彈跳效果
-                            result.style.animation = 'none';
-                            setTimeout(() => {
-                                result.style.animation = 'bounce 0.5s ease';
-                            }, 10);
-                            
-                            // 恢復滾動
-                            document.body.style.overflow = '';
-                            
-                            isSpinning = false;
-                            spinBtn.disabled = false;
-                            spinBtn.textContent = '再玩一次';
-                        }, 200);
+        setStatus("正在儲存機率設定...");
+        // 後端驗證使用 daven 密碼
+        const data = await apiGet({
+          action: "probability",
+          weiweiProbability: weiweiProb,
+          password: "daven",
+          updatedBy: "web-user"
+        });
+
+        if (!data || !data.ok) {
+          document.getElementById("passwordError").style.display = "block";
+          const errorMsg = data?.error || "未知錯誤";
+          console.error("儲存機率失敗:", errorMsg);
+          alert("更新失敗：" + errorMsg);
+          setStatus("儲存失敗");
+          return;
+        }
+
+        alert("機率設定已儲存並同步給所有人！");
+        closeProbabilityModal();
+        await loadConfig();
+      } catch (error) {
+        console.error("saveProbability 錯誤:", error);
+        document.getElementById("passwordError").style.display = "block";
+        alert("儲存設定時發生錯誤：" + error.message);
+        setStatus("儲存失敗");
+      }
+    }
+
+    // ====== Slot Machine ======
+    async function spin() {
+      if (isSpinning) return;
+      
+      try {
+        isSpinning = true;
+
+        const spinBtn = document.getElementById("spinBtn");
+        const slotContent = document.getElementById("slotContent");
+        const resultDiv = document.getElementById("result");
+
+        if (animationTimeout) clearTimeout(animationTimeout);
+
+        document.body.style.overflow = "hidden";
+        spinBtn.disabled = true;
+        spinBtn.textContent = "抽獎中...";
+
+        resultDiv.classList.add("hidden");
+        slotContent.style.opacity = "";
+        slotContent.classList.add("rolling");
+
+        const prob = await getProbability();
+        const randomResult = Math.random() < prob.weiwei ? options[0] : options[1];
+
+        const spinDuration = 2000 + Math.random() * 1000;
+
+        animationTimeout = setTimeout(async () => {
+          try {
+            slotContent.classList.remove("rolling");
+
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                slotContent.style.opacity = "0";
+
+                setTimeout(async () => {
+                  try {
+                    resultDiv.textContent = randomResult;
+                    resultDiv.style.color = randomResult === "威威" ? "#ff6b6b" : "#4ecdc4";
+                    resultDiv.classList.remove("hidden");
+
+                    // 非阻塞式更新統計（即使失敗也不影響顯示結果）
+                    updateStats(randomResult).catch(err => {
+                      console.error("更新統計失敗（非阻塞）:", err);
                     });
-                });
-            }, spinDuration);
+
+                    resultDiv.style.animation = "none";
+                    setTimeout(() => {
+                      resultDiv.style.animation = "bounce 0.5s ease";
+                    }, 10);
+
+                    document.body.style.overflow = "";
+                    isSpinning = false;
+                    spinBtn.disabled = false;
+                    spinBtn.textContent = "再玩一次";
+                  } catch (error) {
+                    console.error("顯示結果時發生錯誤:", error);
+                    // 確保恢復狀態
+                    document.body.style.overflow = "";
+                    isSpinning = false;
+                    spinBtn.disabled = false;
+                    spinBtn.textContent = "開始抽獎";
+                    alert("顯示結果時發生錯誤：" + error.message);
+                  }
+                }, 200);
+              });
+            });
+          } catch (error) {
+            console.error("動畫停止時發生錯誤:", error);
+            // 恢復狀態
+            slotContent.classList.remove("rolling");
+            document.body.style.overflow = "";
+            isSpinning = false;
+            spinBtn.disabled = false;
+            spinBtn.textContent = "開始抽獎";
+          }
+        }, spinDuration);
+      } catch (error) {
+        console.error("spin 函數錯誤:", error);
+        // 恢復狀態
+        document.body.style.overflow = "";
+        isSpinning = false;
+        const spinBtn = document.getElementById("spinBtn");
+        if (spinBtn) {
+          spinBtn.disabled = false;
+          spinBtn.textContent = "開始抽獎";
         }
+        alert("抽獎時發生錯誤：" + error.message);
+      }
+    }
 
-        // 顯示統計彈窗
-        function showStats() {
-            loadStats();
-            const modal = document.getElementById('statsModal');
-            modal.classList.add('show');
-            modal.onclick = function(e) {
-                if (e.target === modal) {
-                    closeModal('statsModal');
-                }
-            };
+    // ====== Modals ======
+    async function showStats() {
+      const modal = document.getElementById("statsModal");
+      modal.classList.add("show");
+      modal.onclick = (e) => { if (e.target === modal) closeModal("statsModal"); };
+      // 非阻塞式載入統計
+      loadConfig().catch(err => {
+        console.error("載入統計失敗:", err);
+      });
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("show");
+      // 关闭时隐藏重置密码区域
+      if (id === 'statsModal') {
+        hideResetPasswordSection();
+      }
+    }
+
+    // ====== 重置統計相關函數 ======
+    function showResetPasswordSection() {
+      document.getElementById("resetPasswordSection").style.display = "block";
+      document.getElementById("resetPasswordInput").value = "";
+      document.getElementById("resetPasswordError").style.display = "none";
+      setTimeout(() => {
+        document.getElementById("resetPasswordInput").focus();
+      }, 100);
+    }
+
+    function hideResetPasswordSection() {
+      document.getElementById("resetPasswordSection").style.display = "none";
+      document.getElementById("resetPasswordInput").value = "";
+      document.getElementById("resetPasswordError").style.display = "none";
+    }
+
+    function handleResetPasswordKeyPress(e) {
+      if (e.key === "Enter") {
+        resetStats();
+      }
+    }
+
+    async function resetStats() {
+      const password = document.getElementById("resetPasswordInput").value.trim();
+      const errorDiv = document.getElementById("resetPasswordError");
+      
+      if (!password) {
+        errorDiv.style.display = "block";
+        errorDiv.textContent = "請輸入密碼！";
+        return;
+      }
+      
+      // 驗證密碼
+      if (password !== 'carol') {
+        errorDiv.style.display = "block";
+        errorDiv.textContent = "密碼錯誤！";
+        document.getElementById("resetPasswordInput").value = "";
+        return;
+      }
+      
+      // 密碼正確，重置統計
+      try {
+        setStatus("正在重置統計...");
+        errorDiv.style.display = "none";
+        
+        // 調用 API 重置統計
+        const data = await apiGet({
+          action: "reset",
+          password: password
+        });
+        
+        if (!data || !data.ok) {
+          const errorMsg = data?.error || "未知錯誤";
+          errorDiv.style.display = "block";
+          errorDiv.textContent = "重置失敗：" + errorMsg;
+          console.error("重置統計失敗:", errorMsg);
+          return;
         }
+        
+        // 重置成功
+        alert("統計已重置！");
+        hideResetPasswordSection();
+        
+        // 重新載入配置以更新顯示
+        await loadConfig();
+        setStatus("統計已重置 ✅");
+        
+      } catch (error) {
+        console.error("重置統計錯誤:", error);
+        errorDiv.style.display = "block";
+        errorDiv.textContent = "重置失敗：" + error.message;
+        setStatus("重置失敗");
+      }
+    }
 
-        // 關閉彈窗
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('show');
+    function showProbabilityModal() {
+      const modal = document.getElementById("probabilityModal");
+
+      document.getElementById("passwordSection").style.display = "block";
+      document.getElementById("probabilitySection").style.display = "none";
+      document.getElementById("usernameInput").value = "";
+      document.getElementById("passwordInput").value = "";
+      document.getElementById("passwordError").style.display = "none";
+
+      modal.classList.add("show");
+      modal.onclick = (e) => { if (e.target === modal) closeProbabilityModal(); };
+      
+      // 自動聚焦到帳號輸入框
+      setTimeout(() => {
+        document.getElementById("usernameInput").focus();
+      }, 100);
+    }
+
+    function closeProbabilityModal() {
+      closeModal("probabilityModal");
+    }
+
+    function handleLoginKeyPress(e) {
+      if (e.key === "Enter") checkLogin();
+    }
+
+    async function checkLogin() {
+      const username = document.getElementById("usernameInput").value.trim();
+      const password = document.getElementById("passwordInput").value.trim();
+      const errorDiv = document.getElementById("passwordError");
+      
+      if (!username || !password) {
+        errorDiv.style.display = "block";
+        errorDiv.textContent = "請輸入帳號和密碼！";
+        return;
+      }
+      
+      // 驗證帳號和密碼
+      if (username === 'superadmin' && password === '123456') {
+        // 登入成功
+        errorDiv.style.display = "none";
+        document.getElementById("passwordSection").style.display = "none";
+        document.getElementById("probabilitySection").style.display = "block";
+        // 載入設定
+        loadConfig().catch(err => {
+          console.error("載入設定失敗:", err);
+        });
+      } else {
+        // 登入失敗
+        errorDiv.style.display = "block";
+        errorDiv.textContent = "帳號或密碼錯誤！";
+        // 清空密碼欄位
+        document.getElementById("passwordInput").value = "";
+      }
+    }
+
+    function updateProbability(type, value) {
+      const v = parseInt(value);
+      const other = 100 - v;
+
+      if (type === "weiwei") {
+        document.getElementById("weiweiPercent").textContent = v + "%";
+        document.getElementById("weiweiDisplay").textContent = v + "%";
+        document.getElementById("xixiSlider").value = other;
+        document.getElementById("xixiPercent").textContent = other + "%";
+        document.getElementById("xixiDisplay").textContent = other + "%";
+      } else {
+        document.getElementById("xixiPercent").textContent = v + "%";
+        document.getElementById("xixiDisplay").textContent = v + "%";
+        document.getElementById("weiweiSlider").value = other;
+        document.getElementById("weiweiPercent").textContent = other + "%";
+        document.getElementById("weiweiDisplay").textContent = other + "%";
+      }
+    }
+
+    // Bounce animation
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes bounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Init
+    window.onload = () => {
+      // 檢查是否為本地文件模式
+      if (isLocalFile()) {
+        const warningDiv = document.getElementById("corsWarning");
+        if (warningDiv) {
+          warningDiv.classList.add("show");
         }
-
-        // 顯示機率調整彈窗
-        function showProbabilityModal() {
-            const modal = document.getElementById('probabilityModal');
-            const passwordSection = document.getElementById('passwordSection');
-            const probabilitySection = document.getElementById('probabilitySection');
-            
-            // 重置
-            passwordSection.style.display = 'block';
-            probabilitySection.style.display = 'none';
-            document.getElementById('passwordInput').value = '';
-            document.getElementById('passwordError').style.display = 'none';
-            
-            modal.classList.add('show');
-            modal.onclick = function(e) {
-                if (e.target === modal) {
-                    closeProbabilityModal();
-                }
-            };
-        }
-
-        // 處理密碼輸入（按Enter）
-        function handlePasswordKeyPress(event) {
-            if (event.key === 'Enter') {
-                checkPassword();
-            }
-        }
-
-        // 驗證密碼
-        function checkPassword() {
-            const password = document.getElementById('passwordInput').value;
-            const errorDiv = document.getElementById('passwordError');
-            const passwordSection = document.getElementById('passwordSection');
-            const probabilitySection = document.getElementById('probabilitySection');
-            
-            if (password === PASSWORD) {
-                passwordSection.style.display = 'none';
-                probabilitySection.style.display = 'block';
-                loadProbability();
-            } else {
-                errorDiv.style.display = 'block';
-                setTimeout(() => {
-                    errorDiv.style.display = 'none';
-                }, 2000);
-            }
-        }
-
-        // 關閉機率調整彈窗
-        function closeProbabilityModal() {
-            closeModal('probabilityModal');
-        }
-
-        // 更新機率顯示
-        function updateProbability(type, value) {
-            const intValue = parseInt(value);
-            const otherValue = 100 - intValue;
-            
-            if (type === 'weiwei') {
-                document.getElementById('weiweiPercent').textContent = intValue + '%';
-                document.getElementById('weiweiDisplay').textContent = intValue + '%';
-                document.getElementById('xixiSlider').value = otherValue;
-                document.getElementById('xixiPercent').textContent = otherValue + '%';
-                document.getElementById('xixiDisplay').textContent = otherValue + '%';
-            } else {
-                document.getElementById('xixiPercent').textContent = intValue + '%';
-                document.getElementById('xixiDisplay').textContent = intValue + '%';
-                document.getElementById('weiweiSlider').value = otherValue;
-                document.getElementById('weiweiPercent').textContent = otherValue + '%';
-                document.getElementById('weiweiDisplay').textContent = otherValue + '%';
-            }
-        }
-
-        // 儲存機率設定
-        function saveProbability() {
-            const weiweiProb = document.getElementById('weiweiSlider').value;
-            const xixiProb = document.getElementById('xixiSlider').value;
-            
-            localStorage.setItem('weiweiProbability', weiweiProb);
-            localStorage.setItem('xixiProbability', xixiProb);
-            
-            alert('機率設定已儲存！');
-            closeProbabilityModal();
-        }
-
-        // 添加彈跳動畫
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes bounce {
-                0%, 100% { transform: scale(1); }
-                50% { transform: scale(1.2); }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // 頁面載入時初始化
-        window.onload = init;
-    </script>
+        setStatus("⚠️ 本地文件模式：請使用 HTTP 伺服器運行");
+        console.error("❌ 請使用 HTTP 伺服器運行此頁面，不要直接用 file:// 打開");
+        return; // 不嘗試連接 API
+      }
+      
+      // 正常模式，嘗試載入配置
+      loadConfig().catch(err => {
+        console.error("初始化載入設定失敗:", err);
+        setStatus("初始化失敗，請稍後重新載入頁面");
+      });
+    };
+  </script>
 </body>
 </html>
