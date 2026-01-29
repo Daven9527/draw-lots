@@ -242,6 +242,22 @@
 
     .close-btn:hover { color: #333; }
 
+    .modal-body {
+      font-size: 1.2em;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .modal-body .probability-line {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: #f5f5f5;
+      border-radius: 10px;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
     /* Stats */
     .stats-container { text-align: center; }
     .stat-item {
@@ -481,6 +497,7 @@
     <div class="btn-group">
       <button class="btn-secondary" onclick="showStats()">📊 統計</button>
       <button class="btn-secondary" onclick="showProbabilityModal()">⚙️ 調整機率</button>
+      <button class="btn-secondary" onclick="showCurrentProbability()">📈 目前機率</button>
     </div>
 
     <div class="status-bar" id="statusBar">正在載入設定...</div>
@@ -614,6 +631,20 @@
         </div>
 
         <button class="save-btn" onclick="saveProbability()">儲存設定（同步所有人）</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Current Probability Modal -->
+  <div id="currentProbabilityModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">📈 目前機率</h2>
+        <button class="close-btn" onclick="closeModal('currentProbabilityModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div>目前同步到的機率如下：</div>
+        <div class="probability-line" id="currentProbabilityLine">威威 50% / 茜茜 50%</div>
       </div>
     </div>
   </div>
@@ -810,6 +841,38 @@
         weiweiSlider.value = prob;
         xixiSlider.value = 100 - prob;
         updateProbability("weiwei", prob);
+      }
+
+      const probDisplay = data.weiweiProbability ?? 50;
+      updateCurrentProbabilityDisplay(probDisplay);
+    }
+
+    function formatProbabilityText(probability) {
+      const weiwei = Math.round(probability);
+      const xixi = 100 - weiwei;
+      return `威威 ${weiwei}% / 茜茜 ${xixi}%`;
+    }
+
+    function updateCurrentProbabilityDisplay(probability) {
+      const text = formatProbabilityText(probability);
+      const modalLine = document.getElementById("currentProbabilityLine");
+      if (modalLine) {
+        modalLine.textContent = text;
+      }
+    }
+
+    async function showCurrentProbability() {
+      try {
+        if (!cachedConfig) await loadConfig();
+        const prob = cachedConfig?.weiweiProbability ?? 50;
+        updateCurrentProbabilityDisplay(prob);
+
+        const modal = document.getElementById("currentProbabilityModal");
+        modal.classList.add("show");
+        modal.onclick = (e) => { if (e.target === modal) closeModal("currentProbabilityModal"); };
+      } catch (error) {
+        console.error("顯示目前機率失敗:", error);
+        setStatus("顯示機率失敗：" + error.message);
       }
     }
 
